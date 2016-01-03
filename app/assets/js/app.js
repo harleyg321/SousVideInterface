@@ -3,7 +3,7 @@ var SousVideApp = angular.module('SousVideApp', [
 						'SousVideControllers'
 					]);
 
-SousVideApp.config(['$routeProvider', function($routeProvider) {
+SousVideApp.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
 	$routeProvider
 		.when('/index', {
 			templateUrl: 'partials/index.html',
@@ -12,4 +12,5 @@ SousVideApp.config(['$routeProvider', function($routeProvider) {
 		.otherwise({
 			redirectTo: '/index'
 		});
+	$locationProvider.html5Mode(true);
 }]);
