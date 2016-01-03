@@ -1,12 +1,34 @@
-<div id="target-temp" class="pull-right text-center primary">
-	<h4>TARGET</h4>
-	<div class="valign">
-		<h2>{{ target | number: 1}}&#x00B0;C</h2>
-	</div>
-</div>
-<div id="current-temp" class="pull-right text-center {{ currentColor }}">
-	<h4>CURRENT</h4>
-	<div class="valign">
-		<h2>{{ current | number: 1}}&#x00B0;C</h2>
+<br>
+<div class="row">
+	<div id="top">
+		<div id="settings" class="primary">
+			<div class="row"><div class="col-xs-10 col-xs-offset-1">
+				<br>
+				<form class="form-horizontal">
+					<div class="form-group">
+						<select class="form-control">
+							<option disabled selected>Please choose a meat</option>
+							<option>Beef</option>
+							<option>Pork</option>
+						</select>
+					</div>
+				</form>
+			</div></div>
+		</div>
+		<div id="temps">
+			<div id="target-temp" class="text-center primary">
+				<h4>TARGET</h4>
+				<div class="valign">
+					<h2>{{ target | number: 1}}&#x00B0;C</h2>
+				</div>
+			</div>
+
+			<div id="current-temp" class="text-center {{ currentColor }}">
+				<h4>CURRENT</h4>
+				<div class="valign">
+					<h2>{{ current | number: 1}}&#x00B0;C</h2>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>

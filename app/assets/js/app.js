@@ -1,6 +1,6 @@
 var SousVideApp = angular.module('SousVideApp', [
 						'ngRoute',
-						'SousVideControllers'
+						'SousVideControllers',
 					]);
 
 SousVideApp.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
