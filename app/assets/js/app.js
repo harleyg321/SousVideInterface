@@ -2,6 +2,7 @@ var SousVideApp = angular.module('SousVideApp', [
 						'ngRoute',
 						'SousVideControllers'
 					]);
+
 SousVideApp.config(['$routeProvider', function($routeProvider) {
 	$routeProvider
 		.when('/index', {
