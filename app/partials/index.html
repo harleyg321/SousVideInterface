@@ -1,1 +1,12 @@
-{{ message }}
+<div id="target-temp" class="pull-right text-center primary">
+	<h4>TARGET</h4>
+	<div class="valign">
+		<h2>{{ target | number: 1}}&#x00B0;C</h2>
+	</div>
+</div>
+<div id="current-temp" class="pull-right text-center {{ currentColor }}">
+	<h4>CURRENT</h4>
+	<div class="valign">
+		<h2>{{ current | number: 1}}&#x00B0;C</h2>
+	</div>
+</div>
