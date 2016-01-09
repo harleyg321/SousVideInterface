@@ -3,7 +3,8 @@ var SousVideControllers = angular.module('SousVideControllers', []);
 SousVideControllers.controller('indexController', function($scope) {
 	$scope.current = 0;
 	$scope.target = 0;
-	$scope.error = $scope.current - $scope.target
+	$scope.error = $scope.current - $scope.target;
+
 	if (Math.abs($scope.error) <= 0.1) {
 		$scope.currentColor = "success";
 	} else if (Math.abs($scope.error) <= 1.0) {
@@ -22,54 +23,41 @@ SousVideControllers.controller('indexController', function($scope) {
 			colors: [
 				{
 					color: "Blue",
-					min: 20,
-					max: 30
+					min: 45,
+					max: 50
+				},
+				{
+					color: "Rare",
+					min: 50,
+					max: 55
+				},
+				{
+					color: "Medium rare",
+					min: 55,
+					max: 60
+				},
+				{
+					color: "Medium",
+					min: 60,
+					max: 65
+				},
+				{
+					color: "Medium well",
+					min: 65,
+					max: 70
+				},
+				{
+					color: "Well done",
+					min: 70,
+					max: 75
 				}
 			]
 		}
 	];
 
-	/*$scope.meats = ["Beef", "Pork", "Chicken"];
+	$scope.$watch('userColor', function(newValue, oldValue) {
+		// on initial page load newValue is undefined, so set to existing value
+		$scope.userTemp = Math.round((newValue.min + newValue.max)/2) || $scope.userTemp;
+	});
 	
-	$scope.colors = [
-		{
-			level: "Blue",
-			meat: "Beef"
-		},
-		{
-			level: "Rare",
-			meat: "Beef"
-		},
-		{
-			level: "Medium-Rare",
-			meat: "Beef"
-		},
-		{
-			level: "Medium",
-			meat: "Beef"
-		},
-		{
-			level: "Medium-Well",
-			meat: "Beef"
-		},
-		{
-			level: "Well Done",
-			meat: "Beef"
-		}
-	];
-
-	$scope.temps = [
-		{
-			min: 46, 
-			max: 49,
-			meat: "Beef",
-			color: "Blue"
-		},
-		{
-			min: 52,
-			max: 55,
-			meat: "Beef",
-			color: "Rare"
-		}
-	];*/
 });
