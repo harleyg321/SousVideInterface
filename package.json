@@ -3,7 +3,9 @@
 	"version": "0.0.1",
 	"description": "A basic interface for controlling a Sous Vide",
 	"dependencies": {
-		"express": "*"
+		"express": "*",
+		"serialport": "*",
+		"socket.io": "*"
 	},
 	"repository": {
 		"type": "git",
