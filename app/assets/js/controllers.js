@@ -5,7 +5,6 @@ SousVideControllers.controller('indexController', function($scope, $window) {
 	$scope.target = 0;
 	$scope.error = 0;
 	$scope.variance = 0;
-	$scope.multiple = false;
 	$scope.currentColor = "success";
 
 
@@ -56,21 +55,14 @@ SousVideControllers.controller('indexController', function($scope, $window) {
 	};
 
 	var socket = io();
+	var chartdata = [];
 
 	socket.on('temperature', function(data) {
 		$scope.$apply(function() {
-			var temp_str = data.split(",");
-			var temp = 0;
-
-			temp_str.forEach(function(entry) {
-				temp += +entry;
-			});
-			temp /= temp_str.length;
-
-			$scope.current = temp;
-			$scope.variance = Math.abs(Math.max.apply(Math, temp_str) - Math.min.apply(Math, temp_str));
-			$scope.multiple = temp_str.length > 1;
+			$scope.current = data.current;
+			$scope.variance = data.variance;
 			$scope.error = $scope.current - $scope.target;
+			$scope.target = data.target
 
 			if (Math.abs($scope.error) <= 0.1) {
 				$scope.currentColor = "success";
@@ -79,6 +71,31 @@ SousVideControllers.controller('indexController', function($scope, $window) {
 			} else {
 				$scope.currentColor = "danger";
 			}
+
+			if (chartdata[chartdata.length-1].i < data.i) {
+				chartdata.push(data);
+				render();
+			}
+		});
+	});
+
+	socket.on('history', function(data) {
+		$scope.$apply(function() {
+			$scope.current = data.current;
+			$scope.variance = data.variance;
+			$scope.error = $scope.current - $scope.target;
+			$scope.target = data.target
+
+			if (Math.abs($scope.error) <= 0.1) {
+				$scope.currentColor = "success";
+			} else if (Math.abs($scope.error) <= 1.0) {
+				$scope.currentColor = "warning";
+			} else {
+				$scope.currentColor = "danger";
+			}
+
+			chartdata = data;
+			render()
 		});
 	});
 
@@ -89,8 +106,6 @@ SousVideControllers.controller('indexController', function($scope, $window) {
 	    width = w - margin.left - margin.right,
 	    height = h - margin.top - margin.bottom,
 	    height2 = h - margin2.top - margin2.bottom;
-
-	var chartdata;
 
 	var x = d3.scale.linear().range([0, width]),
 	    x2 = d3.scale.linear().range([0, width]),
@@ -103,23 +118,23 @@ SousVideControllers.controller('indexController', function($scope, $window) {
 
 	var current1 = d3.svg.line()
 	    .interpolate("monotone")
-	    .x(function(d) { return x(d.i); })
-	    .y(function(d) { return y(d.current); });
+	    .x(function(d) { return x(+d.i); })
+	    .y(function(d) { return y(+d.current); });
 
 	var current2 = d3.svg.line()
 	    .interpolate("monotone")
-	    .x(function(d) { return x2(d.i); })
-	    .y(function(d) { return y2(d.current); });
+	    .x(function(d) { return x2(+d.i); })
+	    .y(function(d) { return y2(+d.current); });
 
 	var target1 = d3.svg.line()
 	    .interpolate("monotone")
-	    .x(function(d) { return x(d.i); })
-	    .y(function(d) { return y(d.target); });
+	    .x(function(d) { return x(+d.i); })
+	    .y(function(d) { return y(+d.target); });
 
 	var target2 = d3.svg.line()
 	    .interpolate("monotone")
-	    .x(function(d) { return x2(d.i); })
-	    .y(function(d) { return y2(d.target); });
+	    .x(function(d) { return x2(+d.i); })
+	    .y(function(d) { return y2(+d.target); });
 
 	var svg = d3.select("#chart")
 		.append("svg")
@@ -140,60 +155,72 @@ SousVideControllers.controller('indexController', function($scope, $window) {
 	    .attr("class", "context")
 	    .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
 
-	d3.csv("/assets/data.csv", type, function(error, data) {
-	  x.domain(d3.extent(data.map(function(d) { return d.i; })));
-	  y.domain([d3.min(data.map(function(d) { return Math.min(d.current, d.target); })),
-	  			d3.max(data.map(function(d) { return Math.max(d.current, d.target); }))]);
-	  x2.domain(x.domain());
-	  y2.domain(y.domain());
+	x.domain(d3.extent(chartdata.map(function(d) { return +d.i; })));
+	y.domain([d3.min(chartdata.map(function(d) { return Math.min(+d.current, +d.target); })),
+				d3.max(chartdata.map(function(d) { return Math.max(+d.current, +d.target); }))]);
+	x2.domain(x.domain());
+	y2.domain(y.domain());
 
-	  chartdata = data;
+	var current1_path = focus.append("path")
+	  .datum(chartdata)
+	  .attr("class", "current-line")
+	  .attr("d", current1);
 
-	  focus.append("path")
-	      .datum(data)
-	      .attr("class", "current-line")
-	      .attr("d", current1);
+	var current2_path = context.append("path")
+	  .datum(chartdata)
+	  .attr("class", "current-line")
+	  .attr("d", current2);
 
-	  context.append("path")
-	      .datum(data)
-	      .attr("class", "current-line")
-	      .attr("d", current2);
+	var target1_path = focus.append("path")
+	  .datum(chartdata)
+	  .attr("class", "target-line")
+	  .attr("d", target1);
 
-	  focus.append("path")
-	      .datum(data)
-	      .attr("class", "target-line")
-	      .attr("d", target1);
+	var target2_path = context.append("path")
+	  .datum(chartdata)
+	  .attr("class", "target-line")
+	  .attr("d", target2);
 
-	  context.append("path")
-	      .datum(data)
-	      .attr("class", "target-line")
-	      .attr("d", target2);
-
-	  context.append("g")
-	      .attr("class", "x brush")
-	      .call(brush)
-	    .selectAll("rect")
-	      .attr("y", -6)
-	      .attr("height", height2 + 7);
-	});
+	context.append("g")
+	  .attr("class", "x brush")
+	  .call(brush)
+	.selectAll("rect")
+	  .attr("y", -6)
+	  .attr("height", height2 + 7);
 
 	function brushed() {
 	  x.domain(brush.empty() ? x2.domain() : brush.extent());
 	  var dataFiltered = chartdata.filter(function(d, i) {
-	      if ( (d.i >= (x.domain()[0])-1) && (d.i <= (x.domain()[1])+1) ) {
+	      if ( (+d.i >= (x.domain()[0])-1) && (+d.i <= (x.domain()[1])+1) ) {
 	        return d;
 	      }
       });
-      y.domain([d3.min(dataFiltered.map(function(d) { return Math.min(d.current,d.target); })),
-      			d3.max(dataFiltered.map(function(d) { return Math.max(d.current,d.target); }))]);
+      y.domain([d3.min(dataFiltered.map(function(d) { return Math.min(+d.current,+d.target); })),
+      			d3.max(dataFiltered.map(function(d) { return Math.max(+d.current,+d.target); }))]);
 	  focus.select(".current-line").attr("d", current1);
 	  focus.select(".target-line").attr("d", target1);
-	}
-
-	function type(d) {
-	  d.i = +d.i;
-	  d.current = +d.current;
-	  return d;
-	}
+	};
 	
+	function render() {
+		x.domain(d3.extent(chartdata.map(function(d) { return +d.i; })));
+		y.domain([d3.min(chartdata.map(function(d) { return Math.min(+d.current, +d.target); })),
+					d3.max(chartdata.map(function(d) { return Math.max(+d.current, +d.target); }))]);
+		x2.domain(x.domain());
+		y2.domain(y.domain());
+
+		current1_path.datum(chartdata)
+		  .attr("d", current1);
+
+		target1_path.datum(chartdata)
+		  .attr("d", target1);
+
+		current2_path.datum(chartdata)
+		  .attr("d", current2);
+
+		target2_path.datum(chartdata)
+		  .attr("d", target2);
+
+		brushed();
+	};
+
 });

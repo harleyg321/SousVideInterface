@@ -13,10 +13,23 @@ var webserver = app.listen(process.env.PORT || 80);
 
 var socket = io(webserver);
 socket.on("connection", function(websocket) {
-	//console.log("A user connected");
+	websocket.emit('history', chartdata);
 });
 
+var chartdata = [];
+var target = 0;
+
 port.on("data", function(data) {
-	socket.emit('temperature', data);
+	var temp_str = data.split(",");
+	var temp = 0;
+
+	temp_str.forEach(function(entry) {
+		temp += +entry;
+	});
+	temp /= temp_str.length;
+	var variance = Math.abs(Math.max.apply(Math, temp_str) - Math.min.apply(Math, temp_str));
+
+	chartdata.push({i: chartdata.length, current: temp, target: target, variance: variance});
+	socket.emit('temperature', chartdata[chartdata.length-1]);
 });
 
