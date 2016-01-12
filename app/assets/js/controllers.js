@@ -141,6 +141,13 @@ SousVideControllers.controller('indexController', function($scope, $window) {
 		.attr("preserveAspectRatio", "none")
 		.attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin.top + margin.bottom));
 
+	svg.append("rect")
+		.attr("width", width)
+		.attr("height", height2)
+		.attr("y", margin2.top)
+		.attr("fill", "white")
+		.attr("opacity", 0.1);
+
 	svg.append("defs").append("clipPath")
 	    .attr("id", "clip")
 	  .append("rect")
