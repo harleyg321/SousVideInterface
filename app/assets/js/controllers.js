@@ -1,12 +1,15 @@
 var SousVideControllers = angular.module('SousVideControllers', []);
 
 SousVideControllers.controller('indexController', function($scope, $window) {
+
+	var socket = io();
+	var chartdata = [];
+
 	$scope.current = 0;
 	$scope.target = 0;
 	$scope.error = 0;
 	$scope.variance = 0;
 	$scope.currentColor = "success";
-
 
 	$scope.userMeat = new Object();
 	$scope.userColor = new Object();
@@ -54,8 +57,9 @@ SousVideControllers.controller('indexController', function($scope, $window) {
 		$scope.userTemp = Math.round(($scope.userColor.min + $scope.userColor.max)/2);
 	};
 
-	var socket = io();
-	var chartdata = [];
+	$scope.submit = function() {
+		socket.emit("target", $scope.userTemp);
+	};
 
 	socket.on('temperature', function(data) {
 		$scope.$apply(function() {
@@ -140,6 +144,13 @@ SousVideControllers.controller('indexController', function($scope, $window) {
 		.append("svg")
 		.attr("preserveAspectRatio", "none")
 		.attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin.top + margin.bottom));
+
+	svg.append("rect")
+		.attr("width", width)
+		.attr("height", height2)
+		.attr("y", margin2.top)
+		.attr("fill", "white")
+		.attr("opacity", 0.1);
 
 	svg.append("defs").append("clipPath")
 	    .attr("id", "clip")

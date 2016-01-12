@@ -2,6 +2,9 @@ var express = require('express');
 var serialport = require('serialport');
 var io = require('socket.io');
 
+var chartdata = [];
+var target = 0;
+
 var app = express();
 var port = new serialport.SerialPort("/dev/ttyACM0", { baudrate: 115200, parser: serialport.parsers.readline("\n") });
 
@@ -14,10 +17,10 @@ var webserver = app.listen(process.env.PORT || 80);
 var socket = io(webserver);
 socket.on("connection", function(websocket) {
 	websocket.emit('history', chartdata);
+	websocket.on("target", function(data) {
+		target = data;
+	});
 });
-
-var chartdata = [];
-var target = 0;
 
 port.on("data", function(data) {
 	var temp_str = data.split(",");
@@ -32,4 +35,3 @@ port.on("data", function(data) {
 	chartdata.push({i: chartdata.length, current: temp, target: target, variance: variance});
 	socket.emit('temperature', chartdata[chartdata.length-1]);
 });
-
