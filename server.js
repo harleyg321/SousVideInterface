@@ -19,19 +19,25 @@ socket.on("connection", function(websocket) {
 	websocket.emit('history', chartdata);
 	websocket.on("target", function(data) {
 		target = data;
+		port.write("S 1,1,1," + target + "\n");
 	});
 });
 
 port.on("data", function(data) {
-	var temp_str = data.split(",");
-	var temp = 0;
+	var message = data.split(" ");
+	if (message[0] == "T") {
+		var temp_str = message[1].split(",");
+		var temp = 0;
 
-	temp_str.forEach(function(entry) {
-		temp += +entry;
-	});
-	temp /= temp_str.length;
-	var variance = Math.abs(Math.max.apply(Math, temp_str) - Math.min.apply(Math, temp_str));
+		temp_str.forEach(function(entry) {
+			temp += +entry;
+		});
+		temp /= temp_str.length;
+		var variance = Math.abs(Math.max.apply(Math, temp_str) - Math.min.apply(Math, temp_str));
 
-	chartdata.push({i: chartdata.length, current: temp, target: target, variance: variance});
-	socket.emit('temperature', chartdata[chartdata.length-1]);
+		chartdata.push({i: chartdata.length, current: temp, target: target, variance: variance});
+		socket.emit('temperature', chartdata[chartdata.length-1]);
+	} else if (message[0] == "P") {
+		console.log((message[1]*100)+"%");
+	}
 });
