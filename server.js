@@ -19,7 +19,7 @@ socket.on("connection", function(websocket) {
 	websocket.emit('history', chartdata);
 	websocket.on("target", function(data) {
 		target = data;
-		port.write("S 1,1,1," + target + "\n");
+		port.write("S 1500,2,200," + target + "\n");
 	});
 });
 
