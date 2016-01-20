@@ -63,7 +63,7 @@ class PID {
 			var dt = now - this._lasttime;
 			var error = this._setpoint - input;
 			var dError = (error - this._lasterror)/dt;
-			this._iterm += this._ki * error;
+			this._iterm += this._ki * (error * dt);
 			this.restrictIterm();
 
 			this._output = this._kp * error + this._iterm + this._kd * dError;
