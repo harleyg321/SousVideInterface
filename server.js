@@ -38,8 +38,8 @@ port.on("data", function(data) {
 	var message = data.split(" ");
 	if (message[0] == "T") {
 		var temp_str = message[1].split(",");
-		temps1.push(temp_str[0]);
-		temps2.push(temp_str[1]);
+		if (!isNaN(temp_str[0])) temps1.push(temp_str[0]);
+		if (!isNaN(temp_str[1])) temps2.push(temp_str[1]);
 
 		setTimeout(function() {
 			if(temps1.length > 500 || temps2.length > 500) {
@@ -73,7 +73,7 @@ port.on("data", function(data) {
 
 				var variance = Math.abs(temperature1 - temperature2);
 				var temp = (temperature1 + temperature2)/2;
-
+				
 				chartdata.push({i: chartdata.length, current: temp, target: target, variance: variance});
 				socket.emit('temperature', chartdata[chartdata.length-1]);
 				
