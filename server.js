@@ -41,45 +41,47 @@ port.on("data", function(data) {
 		temps1.push(temp_str[0]);
 		temps2.push(temp_str[1]);
 
-		if(temps1.length > 500 || temps2.length > 500) {
-			temp1 = 0;
-			temps1.forEach(function(entry) {
-				temp1 += +entry;
-			});
-			temp1 /= temps1.length;
+		setTimeout(function() {
+			if(temps1.length > 500 || temps2.length > 500) {
+				temp1 = 0;
+				temps1.forEach(function(entry) {
+					temp1 += +entry;
+				});
+				temp1 /= temps1.length;
 
-			temp2 = 0;
-			temps2.forEach(function(entry) {
-				temp2 += +entry;
-			});
-			temp2 /= temps2.length;
+				temp2 = 0;
+				temps2.forEach(function(entry) {
+					temp2 += +entry;
+				});
+				temp2 /= temps2.length;
 
-			temps1.length = 0;
-			temps2.length = 0;
+				temps1.length = 0;
+				temps2.length = 0;
 
-			var resistance1 = R2 * (4095 / temp1 - 1);
-			var resistance2 = R2 * (4095 / temp2 - 1);
-			var temperature1 = Math.log(resistance1 / R1);
-			var temperature2 = Math.log(resistance2 / R1);
-			temperature1 /= B;
-			temperature2 /= B;
-			temperature1 += 1 / (273.15 + 25);
-			temperature2 += 1 / (273.15 + 25);
-			temperature1 = 1 / temperature1;
-			temperature2 = 1 / temperature2;
-			temperature1 -= 273.15;
-			temperature2 -= 273.15;
+				var resistance1 = R2 * (4095 / temp1 - 1);
+				var resistance2 = R2 * (4095 / temp2 - 1);
+				var temperature1 = Math.log(resistance1 / R1);
+				var temperature2 = Math.log(resistance2 / R1);
+				temperature1 /= B;
+				temperature2 /= B;
+				temperature1 += 1 / (273.15 + 25);
+				temperature2 += 1 / (273.15 + 25);
+				temperature1 = 1 / temperature1;
+				temperature2 = 1 / temperature2;
+				temperature1 -= 273.15;
+				temperature2 -= 273.15;
 
-			var variance = Math.abs(temperature1 - temperature2);
-			var temp = (temperature1 + temperature2)/2;
+				var variance = Math.abs(temperature1 - temperature2);
+				var temp = (temperature1 + temperature2)/2;
 
-			chartdata.push({i: chartdata.length, current: temp, target: target, variance: variance});
-			socket.emit('temperature', chartdata[chartdata.length-1]);
-			
-			var power = PID.compute(temp);
+				chartdata.push({i: chartdata.length, current: temp, target: target, variance: variance});
+				socket.emit('temperature', chartdata[chartdata.length-1]);
+				
+				var power = PID.compute(temp);
 
-			port.write("O " + Math.round(power) + "\n");
-			console.log((power/5000*100).toFixed(2) + "%")
-		}
+				port.write("O " + Math.round(power) + "\n");
+				console.log((power/5000*100).toFixed(2) + "%")
+			}
+		}, 0);
 	}
 });
