@@ -34,8 +34,8 @@ class PID {
 	restrictIterm() {
 		if (this._iterm > this._max) {
 			this._iterm = this._max;
-		} else if (this._iterm < -this._max) {
-			this._iterm = -this._max;
+		} else if (this._iterm < this._min) {
+			this._iterm = this._min;
 		}
 	};
 
@@ -46,8 +46,8 @@ class PID {
 	initialise() {
 		this._lasttime = Date.now();
 		this._iterm = this._output;
-		this._lastinput = this._output;
 		this._lasterror = 0;
+		this._lastsetpoint = 0;
 		this.restrictIterm();
 	};
 
@@ -60,22 +60,24 @@ class PID {
 
 	compute(input) {
 		if(!this._autoMode) {
+			if (!isNaN(input)) this._lastinput = input;
 			return false;
 		} else {
 			var now = Date.now();
 			var dt = (now - this._lasttime)/1000;
-			var error = this._setpoint - input;
+			var error = (this._setpoint - input);
 			var dError = (error - this._lasterror)/dt;
 			this._iterm += this._ki * (error * dt);
 			this.restrictIterm();
 			
 			this._pterm = this._kp * error;
-			this._dterm = this._kd * this.filterDterm(dError);
+			this._dterm = (this._setpoint == this._lastsetpoint) ? this._kd * this.filterDterm(dError) : this._dterm;;
 
 			this._output = this._pterm + this._iterm + this._dterm;
 			this.restrictOutput();
 
 			this._lasterror = error;
+			this._lastsetpoint = this._setpoint;
 			this._lasttime = now;
 			return this._output;
 		}
@@ -94,7 +96,7 @@ class PID {
 	}
 
 	filterDterm(dterm) {
-		if (this._dfilter.length > 30) this._dfilter.shift();
+		if (this._dfilter.length > 60) this._dfilter.shift();
 		this._dfilter.push(dterm);
 		var term = 0;
 		this._dfilter.forEach(function(entry) {

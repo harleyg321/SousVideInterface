@@ -5,7 +5,7 @@ var pid = require('./pid.js');
 
 var PID = new pid();
 PID.setOutputLimits(0, 5000);
-PID.setTunings(1000, 50, 2000000); //1250,20,2m
+PID.setTunings(1250, 15, 2500000); //1250,20,2m
 
 var chartdata = [];
 var target = 0;

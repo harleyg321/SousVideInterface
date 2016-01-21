@@ -99,7 +99,7 @@ SousVideControllers.controller('indexController', function($scope, $window) {
 			}
 
 			chartdata = data;
-			render()
+			render();
 		});
 	});
 
