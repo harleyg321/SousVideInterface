@@ -135,6 +135,16 @@ SousVideControllers.controller('indexController', function($scope, $window) {
 	    .x(function(d) { return x(+d.i); })
 	    .y(function(d) { return y(+d.target); });
 
+	var target1_high = d3.svg.line()
+	    .interpolate("monotone")
+	    .x(function(d) { return x(+d.i); })
+	    .y(function(d) { return y(+d.target+0.1); });
+
+	var target1_low = d3.svg.line()
+	    .interpolate("monotone")
+	    .x(function(d) { return x(+d.i); })
+	    .y(function(d) { return y(+d.target-0.1); });
+
 	var target2 = d3.svg.line()
 	    .interpolate("monotone")
 	    .x(function(d) { return x2(+d.i); })
@@ -187,6 +197,16 @@ SousVideControllers.controller('indexController', function($scope, $window) {
 	  .attr("class", "target-line")
 	  .attr("d", target1);
 
+	var target1_high_path = focus.append("path")
+	  .datum(chartdata)
+	  .attr("class", "target_high-line")
+	  .attr("d", target1_high);
+
+	var target1_low_path = focus.append("path")
+	  .datum(chartdata)
+	  .attr("class", "target_low-line")
+	  .attr("d", target1_low);
+
 	var target2_path = context.append("path")
 	  .datum(chartdata)
 	  .attr("class", "target-line")
@@ -210,6 +230,8 @@ SousVideControllers.controller('indexController', function($scope, $window) {
       			d3.max(dataFiltered.map(function(d) { return Math.max(+d.current,+d.target); }))]);
 	  focus.select(".current-line").attr("d", current1);
 	  focus.select(".target-line").attr("d", target1);
+	  focus.select(".target_high-line").attr("d", target1_high);
+	  focus.select(".target_low-line").attr("d", target1_low);
 	};
 	
 	function render() {
@@ -224,6 +246,12 @@ SousVideControllers.controller('indexController', function($scope, $window) {
 
 		target1_path.datum(chartdata)
 		  .attr("d", target1);
+
+		target1_high_path.datum(chartdata)
+		  .attr("d", target1_high);
+
+		target1_low_path.datum(chartdata)
+		  .attr("d", target1_low);
 
 		current2_path.datum(chartdata)
 		  .attr("d", current2);

@@ -207,7 +207,9 @@ input[type="range"]::-moz-focus-outer {
   clip-path: url(#clip);
 }
 
-.target-line {
+.target-line,
+.target_high-line,
+.target_low-line {
   fill: none;
   stroke: #337ab7;
   stroke-width: 1px;
