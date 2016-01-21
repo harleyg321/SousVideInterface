@@ -5,7 +5,7 @@ var pid = require('./pid.js');
 
 var PID = new pid();
 PID.setOutputLimits(0, 5000);
-PID.setTunings(1500, 2, 200);
+PID.setTunings(1000, 50, 2000000); //1250,20,2m
 
 var chartdata = [];
 var target = 0;
@@ -14,6 +14,8 @@ var R2 = 10000;
 var B = 3380;
 var temps1 = [];
 var temps2 = [];
+var power = 0;
+var powers = [];
 
 var app = express();
 var port = new serialport.SerialPort("/dev/ttyACM0", { baudrate: 115200, parser: serialport.parsers.readline("\n") });
@@ -38,11 +40,11 @@ port.on("data", function(data) {
 	var message = data.split(" ");
 	if (message[0] == "T") {
 		var temp_str = message[1].split(",");
-		if (!isNaN(temp_str[0])) temps1.push(temp_str[0]);
-		if (!isNaN(temp_str[1])) temps2.push(temp_str[1]);
+		if (!isNaN(temp_str[0]) && temp_str[0] < 4095) temps1.push(temp_str[0]);
+		if (!isNaN(temp_str[1]) && temp_str[1] < 4095) temps2.push(temp_str[1]);
 
 		setTimeout(function() {
-			if(temps1.length > 500 || temps2.length > 500) {
+			if(temps1.length > 750 || temps2.length > 750) {
 				temp1 = 0;
 				temps1.forEach(function(entry) {
 					temp1 += +entry;
@@ -73,14 +75,22 @@ port.on("data", function(data) {
 
 				var variance = Math.abs(temperature1 - temperature2);
 				var temp = (temperature1 + temperature2)/2;
-				
+					
 				chartdata.push({i: chartdata.length, current: temp, target: target, variance: variance});
 				socket.emit('temperature', chartdata[chartdata.length-1]);
 				
-				var power = PID.compute(temp);
+				powers.push(PID.compute(temp));
 
-				port.write("O " + Math.round(power) + "\n");
-				console.log((power/5000*100).toFixed(2) + "%")
+				if(powers.length >= 5) {
+					power = 0;
+					powers.forEach(function(entry) {
+						power += entry;
+					});
+					power /= powers.length;
+					powers.length = 0;
+					port.write("O " + Math.round(power) + "\n");
+				}
+				console.log("Temp:" + ((temperature1+temperature2)/2).toFixed(2) + " P:" + Math.round(PID.getPterm()) + " I:" + Math.round(PID.getIterm()) + " D:" + Math.round(PID.getDterm()) + " Power:" + (power/5000*100).toFixed(2) + "%");
 			}
 		}, 0);
 	}

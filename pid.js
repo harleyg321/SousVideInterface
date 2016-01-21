@@ -2,9 +2,12 @@
 class PID {
 	constructor() {
 		this._output = 0;
+		this._pterm = 0;
 		this._iterm = 0;
+		this._dterm = 0;
 		this._setpoint = 0;
 		this._autoMode = false;
+		this._dfilter = [];
 	};
 
 	setTunings(kp, ki, kd) {
@@ -31,8 +34,8 @@ class PID {
 	restrictIterm() {
 		if (this._iterm > this._max) {
 			this._iterm = this._max;
-		} else if (this._iterm < this._min) {
-			this._iterm = this._min;
+		} else if (this._iterm < -this._max) {
+			this._iterm = -this._max;
 		}
 	};
 
@@ -41,7 +44,7 @@ class PID {
 	};
 
 	initialise() {
-		this.lasttime = Date.now();
+		this._lasttime = Date.now();
 		this._iterm = this._output;
 		this._lastinput = this._output;
 		this._lasterror = 0;
@@ -60,20 +63,47 @@ class PID {
 			return false;
 		} else {
 			var now = Date.now();
-			var dt = now - this._lasttime;
+			var dt = (now - this._lasttime)/1000;
 			var error = this._setpoint - input;
 			var dError = (error - this._lasterror)/dt;
 			this._iterm += this._ki * (error * dt);
 			this.restrictIterm();
+			
+			this._pterm = this._kp * error;
+			this._dterm = this._kd * this.filterDterm(dError);
 
-			this._output = this._kp * error + this._iterm + this._kd * dError;
+			this._output = this._pterm + this._iterm + this._dterm;
 			this.restrictOutput();
 
 			this._lasterror = error;
 			this._lasttime = now;
-			return isNaN(this._output) ? 0 : this._output;
+			return this._output;
 		}
 	};
+
+	getPterm() {
+		return this._pterm;
+	}
+
+	getIterm() {
+		return this._iterm;
+	}
+
+	getDterm() {
+		return this._dterm;
+	}
+
+	filterDterm(dterm) {
+		if (this._dfilter.length > 30) this._dfilter.shift();
+		this._dfilter.push(dterm);
+		var term = 0;
+		this._dfilter.forEach(function(entry) {
+			term += entry;
+		});
+		term /= this._dfilter.length;
+		return term;
+	}
+
 };
 
 module.exports = PID;
