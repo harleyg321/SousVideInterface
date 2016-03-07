@@ -2,6 +2,8 @@ var express = require('express');
 var serialport = require('serialport');
 var io = require('socket.io');
 var pid = require('./pid.js');
+var querystring = require('querystring');
+var http = require('http');
 
 var PID = new pid();
 PID.setOutputLimits(0, 5000);
@@ -76,9 +78,31 @@ port.on("data", function(data) {
 				var variance = Math.abs(temperature1 - temperature2);
 				var temp = (temperature1 + temperature2)/2;
 					
-				chartdata.push({i: chartdata.length, current: temp, target: target, variance: variance});
-				socket.emit('temperature', chartdata[chartdata.length-1]);
+				//chartdata.push({i: chartdata.length, current: temp, target: target, variance: variance});
+				//socket.emit('temperature', chartdata[chartdata.length-1]);
 				
+				var post_data = "temperature,reading=current value=" + temp + "\ntemperature,reading=target value=" + target + "\ntemperature,reading=variance value=" + variance + "\ntemperature,reading=error value=" + Math.abs(temp-target);
+
+				var post_options = {
+					host: 'localhost',
+					port: 8086,
+					path: '/write?db=SousVide',
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+						'Content-Length': Buffer.byteLength(post_data)
+					}
+				};
+				
+				var httpreq = http.request(post_options, function(response) {
+					response.setEncoding('utf8');
+					response.on('data', function(chunk) {
+						console.log("body: " + chunk);
+					});
+				});
+				httpreq.write(post_data);
+				httpreq.end();
+
 				powers.push(PID.compute(temp));
 
 				if(powers.length >= 5) {
