@@ -96,13 +96,14 @@ class PID {
 	}
 
 	filterDterm(dterm) {
-		if (this._dfilter.length > 60) this._dfilter.shift();
+		if (this._dfilter.length > 300) this._dfilter.shift();
 		this._dfilter.push(dterm);
 		var term = 0;
 		this._dfilter.forEach(function(entry) {
 			term += entry;
 		});
 		term /= this._dfilter.length;
+		console.log(term);
 		return term;
 	}
 
