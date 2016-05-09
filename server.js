@@ -7,7 +7,7 @@ var http = require('http');
 
 var PID = new pid();
 PID.setOutputLimits(0, 5000);
-PID.setTunings(1100, 20, 2250000); //1250,20,2m //1250,15,2.5m
+PID.setTunings(1250, 18, 2100000); //1250,20,2m //1250,15,2.5m //1250,18,2m +-0.2 no overshoot
 
 var chartdata = [];
 var target = 0;

@@ -6,8 +6,8 @@ class PID {
 		this._iterm = 0;
 		this._dterm = 0;
 		this._setpoint = 0;
+		this._lastsetpoint = 0;
 		this._autoMode = false;
-		this._dfilter = [];
 	};
 
 	setTunings(kp, ki, kd) {
@@ -40,6 +40,7 @@ class PID {
 	};
 
 	setTarget(setpoint) {
+		this._lastsetpoint = this._setpoint;
 		this._setpoint = setpoint;
 	};
 
@@ -47,8 +48,8 @@ class PID {
 		this._lasttime = Date.now();
 		this._iterm = this._output;
 		this._lasterror = 0;
-		this._lastsetpoint = 0;
-		this.restrictIterm();
+		this._lasterrorSmoothed = 0;
+		this.restrictIterm();		
 	};
 
 	setAuto(mode) {
@@ -65,18 +66,21 @@ class PID {
 		} else {
 			var now = Date.now();
 			var dt = (now - this._lasttime)/1000;
+			var inputSmoothed = this.filterInput(input);
 			var error = (this._setpoint - input);
-			var dError = (error - this._lasterror)/dt;
+			var errorSmoothed = (this._setpoint - inputSmoothed);
+			var dError = (errorSmoothed - this._lasterrorSmoothed)/dt;
 			this._iterm += this._ki * (error * dt);
 			this.restrictIterm();
 			
 			this._pterm = this._kp * error;
-			this._dterm = (this._setpoint == this._lastsetpoint) ? this._kd * this.filterDterm(dError) : this._dterm;;
+			this._dterm = this._kd * dError;
 
 			this._output = this._pterm + this._iterm + this._dterm;
 			this.restrictOutput();
 
 			this._lasterror = error;
+			this._lasterrorSmoothed = errorSmoothed;
 			this._lastsetpoint = this._setpoint;
 			this._lasttime = now;
 			return this._output;
@@ -95,16 +99,14 @@ class PID {
 		return this._dterm;
 	}
 
-	filterDterm(dterm) {
-		if (this._dfilter.length > 300) this._dfilter.shift();
-		this._dfilter.push(dterm);
-		var term = 0;
-		this._dfilter.forEach(function(entry) {
-			term += entry;
-		});
-		term /= this._dfilter.length;
-		console.log(term);
-		return term;
+	filterInput(input) {
+		if(typeof this._inputSmoothed === 'undefined') {
+			this._inputSmoothed = input;
+			this._lastinputSmoothed = input;
+		} else {
+			this._inputSmoothed += (input - this._inputSmoothed) / 100;
+		}
+		return this._inputSmoothed;
 	}
 
 };
